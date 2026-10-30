@@ -69,12 +69,19 @@ kubectl exec cache-6bd46cd54b-z482d  -n app -- curl -s  http://backend-svc:8081
 Создал [NetworkPolicy](./manifests/network-policy.yaml)
 
 Логика политики:
+
 frontend может обращаться только к backend;
+
 backend может обращаться только к cache;
+
 cache не инициирует соединения к другим приложениям;
+
 client не имеет доступа ни к frontend, ни к backend, ни к cache;
+
 Приложениям рарешены DNS;
+
 входящий трафик в каждый Service разрешён только от разрешённого компонента.
+
 NetworkPolicy в Kubernetes по умолчанию запрещает весь ingress к выбранному Pod, если хотя бы одна политика его выбирает и не разрешает соединение.
 
 Выполняем те же проверки что и ранее:
@@ -85,9 +92,13 @@ NetworkPolicy в Kubernetes по умолчанию запрещает весь 
 
 
 frontend-to-backend разрешает ingress к Pod с меткой app: backend только от Pod с меткой app: frontend на TCP-порту 8081.
+
 backend-to-cache разрешает ingress к Pod с меткой app: cache только от Pod с меткой app: backend на TCP-порту 8082.
+
 frontend-ingress с пустым ingress: [] полностью запрещает входящий трафик к frontend. Это означает, что client не может обратиться к frontend.
+
 frontend-egress и backend-egress ограничивают исходящие соединения: frontend может идти только в backend, backend — только в cache. DNS разрешён отдельно, чтобы Service-имена продолжали резолвиться.
+
 Поскольку client не имеет метки app: frontend или app: backend, он не проходит ни под одно разрешающее правило и не может достучаться до приложений.
 
 Итоговая схема frontend -> backend -> cache + DENY ALL, что соответствует поставленной задаче.
